@@ -1,0 +1,48 @@
+name: Deploy to Cloud Run
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up gcloud CLI
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          project_id: compnet-2206825965
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker asia-southeast2-docker.pkg.dev
+
+      - name: Build Docker image
+        run: |
+          docker build -t asia-southeast2-docker.pkg.dev/compnet-2206825965/xenshop/backend .
+
+      - name: Push Docker image
+        run: |
+          docker push asia-southeast2-docker.pkg.dev/compnet-2206825965/xenshop/backend
+
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy backend-xenshop \
+            --image=asia-southeast2-docker.pkg.dev/compnet-2206825965/xenshop/backend \
+            --platform=managed \
+            --region=asia-southeast2 \
+            --allow-unauthenticated \
+            --set-env-vars=\
+DATABASE_URL=${{ secrets.DATABASE_URL }},\
+DIRECT_URL=${{ secrets.DIRECT_URL }},\
+XENDIT_SECRET_KEY=${{ secrets.XENDIT_SECRET_KEY }},\
+BASE_URL=${{ secrets.BASE_URL }}
