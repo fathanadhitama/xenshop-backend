@@ -37,7 +37,7 @@ export class InvoiceController {
       Number(take)
     );
     return {
-      statusCode: 200,
+      statusCode: HttpStatus.OK,
       message: 'Invoices retrieved successfully',
       data: invoices,
     };
