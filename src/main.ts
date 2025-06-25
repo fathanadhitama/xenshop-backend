@@ -19,6 +19,8 @@ async function bootstrap() {
   };
   app.enableCors(corsOptions);
 
-  await app.listen(process.env.PORT || process.env.APP_PORT || 3001);
+  const port = parseInt(process.env.PORT, 10) || 8080;
+  await app.listen(port, '0.0.0.0');
+  console.log('Running on PORT:', port);
 }
 bootstrap();
