@@ -95,14 +95,29 @@ export class SubscriptionService {
         data: { status: InvoiceStatusEnum.PAID, paidAt: new Date() },
       });
 
+      const now = new Date();
+      const latestSub = await this.prisma.userSubscription.findFirst({
+        where: {
+          userId: invoice.userId,
+          endDate: { gte: now }, // aktif atau future
+        },
+        orderBy: {
+          endDate: 'desc',
+        },
+      });
+
+      const startDate =
+        latestSub && latestSub.endDate > now ? latestSub.endDate : now;
+      const endDate = new Date(
+        startDate.getTime() + plan.durationMonth * 30 * 24 * 60 * 60 * 1000
+      );
+
       await this.prisma.userSubscription.create({
         data: {
           userId: invoice.userId,
           planId: invoice.planId,
-          startDate: new Date(),
-          endDate: new Date(
-            Date.now() + plan.durationMonth * 30 * 24 * 60 * 60 * 1000
-          ),
+          startDate,
+          endDate,
         },
       });
     } else if (body.status === InvoiceStatus.Expired) {
@@ -117,5 +132,56 @@ export class SubscriptionService {
       });
     }
     return invoice.invoiceUrl;
+  }
+
+  async getUserSubscriptionHistory(userId: string, skip = 0, take = 5) {
+    const [invoices, total] = await this.prisma.$transaction([
+      this.prisma.invoice.findMany({
+        where: { userId },
+        skip,
+        take,
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.invoice.count({
+        where: { userId },
+      }),
+    ]);
+
+    return {
+      data: invoices,
+      meta: {
+        total,
+        skip,
+        take,
+        totalPages: Math.ceil(total / take),
+      },
+    };
+  }
+
+  async cancelUserSubscription(userId: string) {
+    const now = new Date();
+
+    const futureSubs = await this.prisma.userSubscription.findMany({
+      where: {
+        userId,
+        endDate: { gte: now },
+      },
+    });
+
+    if (futureSubs.length === 0) {
+      throw new NotFoundException('No subscription to cancel');
+    }
+
+    await this.prisma.userSubscription.updateMany({
+      where: {
+        userId,
+        endDate: { gte: now },
+      },
+      data: {
+        endDate: now,
+      },
+    });
+
+    return futureSubs;
   }
 }
