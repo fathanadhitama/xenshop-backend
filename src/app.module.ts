@@ -6,6 +6,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { ConfigModule } from '@nestjs/config';
 import { XenditService } from './xendit/xendit.service';
 import { XenditModule } from './xendit/xendit.module';
+import { InvoiceModule } from './invoice/invoice.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { XenditModule } from './xendit/xendit.module';
     SubscriptionModule,
     PrismaModule,
     XenditModule,
+    InvoiceModule,
   ],
   controllers: [AppController],
   providers: [AppService, XenditService],
