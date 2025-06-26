@@ -28,13 +28,18 @@ export class InvoiceService {
     return invoice;
   }
 
-  async findByUser(userId: string, skip = 0, take = 5) {
+  async findByUser(userId: string, page = 1, limit = 5) {
+    const skip = (page - 1) * limit;
+    const take = limit;
     const [invoices, total] = await this.prisma.$transaction([
       this.prisma.invoice.findMany({
         where: { userId },
         skip,
         take,
         orderBy: { createdAt: 'desc' },
+        include: {
+          plan: true,
+        },
       }),
       this.prisma.invoice.count({
         where: { userId },

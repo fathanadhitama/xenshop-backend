@@ -1,4 +1,11 @@
-import { Controller, Get, HttpStatus, Param, Query } from '@nestjs/common';
+import {
+  BadRequestException,
+  Controller,
+  Get,
+  HttpStatus,
+  Param,
+  Query,
+} from '@nestjs/common';
 import { InvoiceService } from './invoice.service';
 
 @Controller('invoice')
@@ -28,13 +35,23 @@ export class InvoiceController {
   @Get('/user/:userId')
   async findByUser(
     @Param('userId') userId: string,
-    @Query('skip') skip = '0',
-    @Query('take') take = '5'
+    @Query('page') page = '1',
+    @Query('limit') limit = '5'
   ) {
+    const pageNumber = Number(page);
+    const limitNumber = Number(limit);
+
+    if (isNaN(pageNumber) || pageNumber < 1) {
+      throw new BadRequestException('Page must be a positive number');
+    }
+    if (isNaN(limitNumber) || limitNumber < 1) {
+      throw new BadRequestException('Limit must be a positive number');
+    }
+
     const invoices = await this.invoiceService.findByUser(
       userId,
-      Number(skip),
-      Number(take)
+      pageNumber,
+      limitNumber
     );
     return {
       statusCode: HttpStatus.OK,

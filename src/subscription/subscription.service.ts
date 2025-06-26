@@ -134,7 +134,10 @@ export class SubscriptionService {
     return invoice.invoiceUrl;
   }
 
-  async getUserSubscriptionHistory(userId: string, skip = 0, take = 5) {
+  async getUserSubscriptionHistory(userId: string, page = 0, limit = 5) {
+    const skip = (page - 1) * limit;
+    const take = limit;
+
     const [invoices, total] = await this.prisma.$transaction([
       this.prisma.invoice.findMany({
         where: { userId },

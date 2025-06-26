@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
@@ -48,13 +49,23 @@ export class SubscriptionController {
   @UseGuards(SubscriptionGuard)
   async getUserHistory(
     @Headers('x-user-id') userId: string,
-    @Query('skip') skip = '0',
-    @Query('take') take = '5'
+    @Query('page') page = '0',
+    @Query('limit') limit = '5'
   ) {
+    const pageNumber = Number(page);
+    const limitNumber = Number(limit);
+
+    if (isNaN(pageNumber) || pageNumber < 1) {
+      throw new BadRequestException('Page must be a positive number');
+    }
+    if (isNaN(limitNumber) || limitNumber < 1) {
+      throw new BadRequestException('Limit must be a positive number');
+    }
+
     const history = await this.subscriptionService.getUserSubscriptionHistory(
       userId,
-      Number(skip),
-      Number(take)
+      pageNumber,
+      limitNumber
     );
     return {
       statusCode: HttpStatus.OK,
