@@ -38,8 +38,8 @@ export class SubscriptionService {
       currency: 'IDR',
       invoiceDuration: 86400, // 1 day in seconds
       description: `Subscription for ${plan.name} by user ${createInvoiceDto.user_id}`,
-      successRedirectUrl: `${baseUrl}/success`,
-      failureRedirectUrl: `${baseUrl}/failed`,
+      successRedirectUrl: `${baseUrl}/subscription`,
+      failureRedirectUrl: `${baseUrl}/subscription`,
     };
 
     const response = await this.xendit.invoice.createInvoice({
