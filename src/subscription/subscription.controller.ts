@@ -57,7 +57,6 @@ export class SubscriptionController {
   }
 
   @Get('/history')
-  @UseGuards(SubscriptionGuard)
   async getUserHistory(
     @Headers('x-user-id') userId: string,
     @Query('page') page = '0',
