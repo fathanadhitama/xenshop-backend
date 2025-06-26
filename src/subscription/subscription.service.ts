@@ -138,12 +138,15 @@ export class SubscriptionService {
     const skip = (page - 1) * limit;
     const take = limit;
 
-    const [invoices, total] = await this.prisma.$transaction([
-      this.prisma.invoice.findMany({
+    const [subscriptions, total] = await this.prisma.$transaction([
+      this.prisma.userSubscription.findMany({
         where: { userId },
         skip,
         take,
         orderBy: { createdAt: 'desc' },
+        include: {
+          plan: true,
+        },
       }),
       this.prisma.invoice.count({
         where: { userId },
@@ -151,7 +154,7 @@ export class SubscriptionService {
     ]);
 
     return {
-      data: invoices,
+      data: subscriptions,
       meta: {
         total,
         skip,
@@ -186,5 +189,27 @@ export class SubscriptionService {
     });
 
     return futureSubs;
+  }
+
+  async getUserActiveSubscription(userId: string) {
+    const now = new Date();
+    const subscription = await this.prisma.userSubscription.findFirst({
+      where: {
+        userId,
+        endDate: { gte: now },
+      },
+      orderBy: {
+        endDate: 'desc',
+      },
+      include: {
+        plan: true,
+      },
+    });
+
+    if (!subscription) {
+      throw new NotFoundException('No active subscription found');
+    }
+
+    return subscription;
   }
 }

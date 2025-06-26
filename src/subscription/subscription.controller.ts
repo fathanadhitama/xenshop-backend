@@ -19,6 +19,17 @@ import { SubscriptionGuard } from './subscription.guard';
 export class SubscriptionController {
   constructor(private readonly subscriptionService: SubscriptionService) {}
 
+  @Get('/me')
+  async getUserActiveSubscription(@Headers('x-user-id') userId: string) {
+    const subscription =
+      await this.subscriptionService.getUserActiveSubscription(userId);
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'User active subscription retrieved successfully',
+      data: subscription,
+    };
+  }
+
   @Post()
   async createInvoice(@Body() createInvoiceDto: CreateInvoiceDto) {
     const invoiceUrl =
