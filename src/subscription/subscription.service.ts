@@ -14,6 +14,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { XenditService } from 'src/xendit/xendit.service';
 import { ConfigService } from '@nestjs/config';
 import { InvoiceStatusEnum } from './enums/subscription.enums';
+import { POSSIBLE_PAYMENT_METHODS } from './subscription.constants';
 
 @Injectable()
 export class SubscriptionService {
@@ -40,6 +41,7 @@ export class SubscriptionService {
       description: `Subscription for ${plan.name} by user ${createInvoiceDto.user_id}`,
       successRedirectUrl: `${baseUrl}/subscription`,
       failureRedirectUrl: `${baseUrl}/subscription`,
+      paymentMethods: POSSIBLE_PAYMENT_METHODS,
     };
 
     const response = await this.xendit.invoice.createInvoice({
